@@ -7,22 +7,21 @@ interface PDFScreenProps {
 
 export default function PDFScreen({ onBack }: PDFScreenProps) {
   const [email, setEmail] = useState('');
+  const [isEmailValid, setIsEmailValid] = useState(false);
 
-  const handleSubmit = () => {
-    if (!email || !email.includes('@')) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address.');
-      return;
-    }
-    
-    // In a real app, you would send this to your backend
-    Alert.alert(
-      'Success!', 
-      'PDF sent to your email. Check your inbox in a few minutes.',
-      [{ text: 'OK', onPress: onBack }]
-    );
+  const validateEmail = (text: string) => {
+    setEmail(text);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    setIsEmailValid(emailRegex.test(text));
   };
 
   const handleDownloadPDF = () => {
+    if (!isEmailValid) {
+      Alert.alert('Email Required', 'Please enter a valid email address before downloading the playbook.');
+      return;
+    }
+    
+    // In a real app, you would save the email to your backend here
     const pdfUrl = 'https://drive.google.com/file/d/1QPVgOv3SCkqf5K2Lc-Xdx0b9LcUa8_yb/view?usp=sharing';
     Linking.openURL(pdfUrl).catch(err => {
       Alert.alert('Error', 'Could not open PDF link');
@@ -32,30 +31,41 @@ export default function PDFScreen({ onBack }: PDFScreenProps) {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Bonus Follow-up PDF</Text>
+        <Text style={styles.title}>Get Your Playbook</Text>
         <Text style={styles.subtitle}>
-          Want my PDF: "Kicka$$ Enablement Playbook"?
+          "Kicka$$ Enablement Playbook"
         </Text>
         <Text style={styles.description}>
-          Add your email and I'll send it.
+          Enter your email to download the complete playbook with actionable strategies.
         </Text>
         
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            isEmailValid ? styles.inputValid : email.length > 0 ? styles.inputInvalid : null
+          ]}
           placeholder="Enter your email address"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={validateEmail}
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
         />
         
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitButtonText}>Send PDF</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.downloadButton} onPress={handleDownloadPDF}>
-          <Text style={styles.downloadButtonText}>📥 Download the Playbook</Text>
+        <TouchableOpacity 
+          style={[
+            styles.downloadButton,
+            !isEmailValid && styles.downloadButtonDisabled
+          ]} 
+          onPress={handleDownloadPDF}
+          disabled={!isEmailValid}
+        >
+          <Text style={[
+            styles.downloadButtonText,
+            !isEmailValid && styles.downloadButtonTextDisabled
+          ]}>
+            📥 Download the Playbook
+          </Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
@@ -108,22 +118,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 24,
   },
-  submitButton: {
-    backgroundColor: '#0ea5e9',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  inputValid: {
+    borderColor: '#10b981',
   },
-  submitButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '600',
+  inputInvalid: {
+    borderColor: '#ef4444',
   },
   downloadButton: {
     backgroundColor: '#10b981',
@@ -137,10 +136,18 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  downloadButtonDisabled: {
+    backgroundColor: '#d1d5db',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
   downloadButtonText: {
     color: 'white',
     fontSize: 18,
     fontWeight: '600',
+  },
+  downloadButtonTextDisabled: {
+    color: '#9ca3af',
   },
   backButton: {
     paddingVertical: 12,

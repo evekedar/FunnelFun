@@ -63,7 +63,7 @@ export default function ResultsScreen({ totalScore, onPDFRequest }: ResultsScree
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.pdfButton} onPress={onPDFRequest}>
-          <Text style={styles.pdfButtonText}>Get Bonus PDF Guide</Text>
+          <Text style={styles.pdfButtonText}>Get Your Playbook</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -144,10 +144,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#0ea5e9',
+    borderColor: '#10b981',
   },
   pdfButtonText: {
-    color: '#0ea5e9',
+    color: '#10b981',
     fontSize: 16,
     fontWeight: '500',
   },
