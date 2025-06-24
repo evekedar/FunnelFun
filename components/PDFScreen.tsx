@@ -8,6 +8,7 @@ interface PDFScreenProps {
 export default function PDFScreen({ onBack }: PDFScreenProps) {
   const [email, setEmail] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validateEmail = (text: string) => {
     setEmail(text);
@@ -15,17 +16,43 @@ export default function PDFScreen({ onBack }: PDFScreenProps) {
     setIsEmailValid(emailRegex.test(text));
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (!isEmailValid) {
       Alert.alert('Email Required', 'Please enter a valid email address before downloading the playbook.');
       return;
     }
     
-    // In a real app, you would save the email to your backend here
-    const pdfUrl = 'https://drive.google.com/file/d/1QPVgOv3SCkqf5K2Lc-Xdx0b9LcUa8_yb/view?usp=sharing';
-    Linking.openURL(pdfUrl).catch(err => {
-      Alert.alert('Error', 'Could not open PDF link');
-    });
+    setIsSubmitting(true);
+    
+    try {
+      const response = await fetch('https://dreunwidupezjgcsaeuw.supabase.co/functions/v1/09376b04-aba6-4bb8-a155-4e7eca1cc138', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        console.log('Response from Supabase:', data);
+        Alert.alert('Success', 'PDF request submitted! Check your email.');
+        
+        // Open PDF link
+        const pdfUrl = 'https://drive.google.com/file/d/1QPVgOv3SCkqf5K2Lc-Xdx0b9LcUa8_yb/view?usp=sharing';
+        Linking.openURL(pdfUrl).catch(err => {
+          Alert.alert('Error', 'Could not open PDF link');
+        });
+      } else {
+        Alert.alert('Error', data.error || 'Failed to submit email');
+      }
+    } catch (error) {
+      console.error('Error submitting email:', error);
+      Alert.alert('Error', 'Network error. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -55,16 +82,16 @@ export default function PDFScreen({ onBack }: PDFScreenProps) {
         <TouchableOpacity 
           style={[
             styles.downloadButton,
-            !isEmailValid && styles.downloadButtonDisabled
+            (!isEmailValid || isSubmitting) && styles.downloadButtonDisabled
           ]} 
           onPress={handleDownloadPDF}
-          disabled={!isEmailValid}
+          disabled={!isEmailValid || isSubmitting}
         >
           <Text style={[
             styles.downloadButtonText,
-            !isEmailValid && styles.downloadButtonTextDisabled
+            (!isEmailValid || isSubmitting) && styles.downloadButtonTextDisabled
           ]}>
-            📥 Download the Playbook
+            {isSubmitting ? '⏳ Submitting...' : '📥 Download the Playbook'}
           </Text>
         </TouchableOpacity>
         
